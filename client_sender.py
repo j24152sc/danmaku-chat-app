@@ -19,13 +19,10 @@ def connect_server():
 
     name = name_entry.get().strip()
 
-    # 空ならそのまま送る（サーバーでゲスト化）
-    register = {
+    client.send((json.dumps({
         "type": "register",
         "name": name
-    }
-
-    client.send((json.dumps(register) + "\n").encode("utf-8"))
+    }) + "\n").encode("utf-8"))
 
     threading.Thread(target=receive_loop, daemon=True).start()
 
@@ -78,7 +75,7 @@ def update_users(users):
         target_vars[u] = var
 
 
-def send_message():
+def send_message(event=None):
 
     if client is None:
         return
@@ -91,7 +88,7 @@ def send_message():
 
     targets = [u for u, v in target_vars.items() if v.get()]
 
-    if len(targets) == 0:
+    if not targets:
         targets = ["all"]
 
     packet = {
