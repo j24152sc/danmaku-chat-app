@@ -9,6 +9,9 @@ PORT = 5000
 client = None
 target_vars = {}
 
+def on_enter(event):
+    send_message()
+    return "break"
 
 def connect_server():
 
@@ -123,11 +126,18 @@ tk.Label(root, text="メッセージ").pack()
 
 message_entry = tk.Entry(root)
 message_entry.pack(fill="x")
+message_entry.bind("<Return>", on_enter)
+
 
 user_frame = tk.Frame(root)
 user_frame.pack(fill="both", expand=True)
 
 tk.Button(root, text="接続", command=connect_server).pack()
 tk.Button(root, text="送信", command=send_message).pack()
+tk.Label(
+    root,
+    text="Enterでも送信OK",
+    fg="gray"
+).pack()
 
 root.mainloop()
