@@ -25,14 +25,25 @@ def broadcast(data):
 
 def send_user_list():
 
-    data = {
-        "type": "users",
-        "users": [
-            v["name"]
-            for v in clients.values()
-            if v["role"] != "overlay"
-        ]
-    }
+    users = [
+        v["name"]
+        for v in clients.values()
+        if v["role"] != "overlay"
+    ]
+    
+    # overlayや空だけなら除外済み
+
+    if len(users) == 0:
+        data = {
+            "type": "users",
+            "users": []
+        }
+    else:
+        data = {
+            "type": "users",
+            "users": ["all"] + users
+        }
+
 
     broadcast(data)
 

@@ -69,6 +69,10 @@ def update_users(users):
         w.destroy()
 
     tk.Label(user_frame, text="オンラインユーザー").pack(anchor="w")
+    
+    if "all" not in users and len(users) > 0:
+        users = ["all"] + users
+
 
     target_vars.clear()
 
@@ -96,8 +100,11 @@ def send_message():
     if text == "":
         return
 
-    targets = [u for u, v in target_vars.items() if v.get()]
-
+    targets = [u for u, v in target_vars.items() if v.get() and u != "all"]
+    
+    if len(targets) == 0:
+        return
+    
     if len(targets) == 0:
         targets = ["all"]
 
