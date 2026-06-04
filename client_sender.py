@@ -104,11 +104,12 @@ def send_message():
 
     targets = [u for u, v in target_vars.items() if v.get() and u != "all"]
     
+    # allが選ばれていたら単独扱い
+    if "all" in [u for u, v in target_vars.items() if v.get()]:
+        targets = ["all"]
+    
     if len(targets) == 0:   # ユーザー未選択時は送信しない（仕様）
         return
-    
-    if len(targets) == 0:
-        targets = ["all"]
 
     packet = {
         "type": "message",

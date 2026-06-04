@@ -95,11 +95,14 @@ def handle_client(conn):
                     send_user_list()
 
                 elif packet["type"] == "message":
-
+                    # クライアントから送られた名前（空なら後でゲストになることもある）
                     name = packet.get("name", "").strip()
+                    # メッセージ本文
                     text = packet.get("text", "")
+                    # 文字色（指定がなければ白）
                     color = packet.get("color", "#ffffff")
-                    targets = packet.get("to", ["all"]) # 送信対象
+                    # 送信対象リスト（例: ["all"] や ["A", "B"]）
+                    targets = packet.get("to", ["all"]) 
 
                     msg = {
                         "type": "message",
@@ -108,9 +111,34 @@ def handle_client(conn):
                         "color": color,
                         "to": targets
                     }
-
-                    broadcast(msg)
                     
+                    #送信元（自分）を保存:自分に送らないために使う
+                    sender_conn = conn
+
+                    # all → 全員（自分除外）に送る
+                    if "all" in targets:
+
+                        # 接続中の全ユーザーをループ
+                        for c in list(clients.keys()):
+                            if c == sender_conn:
+                                continue
+
+                            try:
+                                c.send((json.dumps(msg) + "\n").encode("utf-8"))
+                            # 送信失敗してもサーバー止めない
+                            except:
+                                pass
+
+                    # 個別送信
+                    else:
+                        # 接続ユーザー全員チェック
+                        for c, info in list(clients.items()):
+                            if info["name"] in targets and c != sender_conn:
+                                try:
+                                    #対象ユーザーだけに送信
+                                    c.send((json.dumps(msg) + "\n").encode("utf-8"))
+                                except:
+                                    pass
 
     except:
         pass
