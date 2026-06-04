@@ -6,7 +6,7 @@ HOST = "0.0.0.0"
 PORT = 5000
 
 clients = {}  # conn -> name
-guest_count = 0
+guest_count = 0 # 名前未設定ユーザーのゲスト番号管理
 
 
 def broadcast(data):
@@ -25,6 +25,7 @@ def broadcast(data):
 
 def send_user_list():
 
+    # overlayをユーザー一覧から除外
     users = [
         v["name"]
         for v in clients.values()
@@ -41,7 +42,7 @@ def send_user_list():
     else:
         data = {
             "type": "users",
-            "users": ["all"] + users
+            "users": ["all"] + users    # 全体送信用
         }
 
 
@@ -75,7 +76,7 @@ def handle_client(conn):
                 if packet["type"] == "register":
 
                     name = packet.get("name", "").strip()
-                    role = packet.get("role", "user")
+                    role = packet.get("role", "user")   # overlay判定用
                     
                     # overlayは名前固定
                     if role == "overlay" or name == "overlay":
@@ -95,14 +96,21 @@ def handle_client(conn):
 
                 elif packet["type"] == "message":
 
+                    name = packet.get("name", "").strip()
+                    text = packet.get("text", "")
+                    color = packet.get("color", "#ffffff")
+                    targets = packet.get("to", ["all"]) # 送信対象
+
                     msg = {
                         "type": "message",
-                        "name": packet.get("name", ""),
-                        "text": packet.get("text", ""),
-                        "to": packet.get("to", ["all"])
+                        "name": name,
+                        "text": text,
+                        "color": color,
+                        "to": targets
                     }
 
                     broadcast(msg)
+                    
 
     except:
         pass

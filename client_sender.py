@@ -9,7 +9,7 @@ PORT = 5000
 client = None
 target_vars = {}
 
-def on_enter(event):
+def on_enter(event):    # Enterキー送信対応
     send_message()
     return "break"
 
@@ -62,7 +62,8 @@ def receive_loop():
         except:
             pass
 
-
+# サーバーから受信したユーザー一覧（overlay除外済み）
+# client_sender自身はユーザーとして表示されない設計
 def update_users(users):
 
     for w in user_frame.winfo_children():
@@ -103,7 +104,7 @@ def send_message():
 
     targets = [u for u, v in target_vars.items() if v.get() and u != "all"]
     
-    if len(targets) == 0:
+    if len(targets) == 0:   # ユーザー未選択時は送信しない（仕様）
         return
     
     if len(targets) == 0:
@@ -135,13 +136,13 @@ tk.Label(root, text="メッセージ").pack()
 
 message_entry = tk.Entry(root)
 message_entry.pack(fill="x")
-message_entry.bind("<Return>", on_enter)
+message_entry.bind("<Return>", on_enter)    # Enterキー送信対応
 
 # =========================
 # ニコニコ風カラー選択
 # =========================
 
-color_var = tk.StringVar(value="#ffffff")
+color_var = tk.StringVar(value="#ffffff")   # 文字色（ニコニコ風カラー）
 
 tk.Label(root, text="文字色（ニコニコ風）").pack()
 

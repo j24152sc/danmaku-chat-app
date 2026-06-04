@@ -22,10 +22,10 @@ class Danmaku(QLabel):
         self.setFont(QFont("Meiryo", 20))
         self.adjustSize()
 
-        self.speed = random.randint(3, 8)
+        self.speed = random.randint(3, 8)   # 右→左スクロール速度
 
         self.move(
-            parent.width(),
+            parent.width(), # 右端から出現（右→左の弾幕）
             random.randint(0, max(0, parent.height() - 50))
         )
 
@@ -68,10 +68,16 @@ class Overlay(QWidget):
         threading.Thread(target=self.recv, daemon=True).start()
 
     def add(self, data):
+        # 受信データ形式: "name||text||color"
         name, text, color = data.split("||")
 
-        label = Danmaku(f"{name} : {text}", self)
-        label.setStyleSheet(f"color:{color}; background:transparent;")
+        if name and name.strip() != "":
+            display = f"{name} : {text}" # 名前あり → 名前＋メッセージ表示
+        else:
+            display = text      # 名前なし → メッセージのみ表示
+
+        label = Danmaku(display, self)
+        label.setStyleSheet(f"color:{color}; background:transparent;")  # 文字色対応
 
         label.show()
         self.labels.append(label)
@@ -85,6 +91,7 @@ class Overlay(QWidget):
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client.connect((HOST, PORT))
 
+        # overlayはユーザー一覧に出ない特殊クライアント
         client.send((json.dumps({
             "type": "register",
             "name": "overlay",
@@ -116,10 +123,14 @@ class Overlay(QWidget):
                     text = packet.get("text", "")
                     color = packet.get("color", "#ffffff")
 
-                    self.signal.emit(f"{name}||{text}||{color}")
+                    if name.strip() == "":
+                        name = None
 
-                elif packet["type"] == "users":
-                    print("オンライン:", packet["users"])
+                        self.signal.emit(f"{name or ''}||{text}||{color}")
+
+                    # ユーザー一覧受信（表示用途ではないデバッグ）
+                    elif packet["type"] == "users":
+                        print("オンライン:", packet["users"])
 
 
 
