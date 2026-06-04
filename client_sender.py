@@ -50,8 +50,12 @@ def receive_loop():
                 packet = json.loads(line)
 
                 if packet["type"] == "users":
-                    update_users(packet["users"])
+                    users = packet["users"]
+                    
+                    # client_senderはUIに出さない
+                    users = [u for u in users if u != "guest_sender"]
 
+                    update_users(users)
         except:
             pass
 

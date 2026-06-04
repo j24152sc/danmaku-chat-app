@@ -84,7 +84,8 @@ class Overlay(QWidget):
 
         client.send((json.dumps({
             "type": "register",
-            "name": "overlay"
+            "name": "overlay",
+            "role": "overlay"
         }) + "\n").encode())
 
         buffer = ""

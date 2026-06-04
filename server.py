@@ -27,7 +27,11 @@ def send_user_list():
 
     data = {
         "type": "users",
-        "users": list(clients.values())
+        "users": [
+            v["name"]
+            for v in clients.values()
+            if v["role"] != "overlay"
+        ]
     }
 
     broadcast(data)
@@ -60,12 +64,22 @@ def handle_client(conn):
                 if packet["type"] == "register":
 
                     name = packet.get("name", "").strip()
-
-                    if name == "" or name == "overlay":
+                    role = packet.get("role", "user")
+                    
+                    # overlayは名前固定
+                    if role == "overlay" or name == "overlay":
+                        name = "overlay"
+                        role = "overlay"
+                    # 空ならゲスト化（senderだけ）
+                    if name == "":
                         guest_count += 1
                         name = f"ゲスト{guest_count}"
-
-                    clients[conn] = name
+                    
+                    clients[conn] = {
+                        "name": name,
+                        "role": role
+                    }
+                    
                     send_user_list()
 
                 elif packet["type"] == "message":
@@ -85,7 +99,8 @@ def handle_client(conn):
     finally:
 
         if conn in clients:
-            del clients[conn]
+            if conn in clients:
+                del clients[conn]
 
         conn.close()
         send_user_list()
