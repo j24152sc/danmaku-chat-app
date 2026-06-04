@@ -102,6 +102,12 @@ def send_message():
     if text == "":
         return
 
+    # デバッグ用選択確認(小／中／大ボタンの選択確認)
+    print("選択中:", font_size_var.get())
+    print("選択:", font_size_var.get())
+    print("辞書:", font_sizes)
+    print("変換:", font_sizes[font_size_var.get()])
+    
     targets = [u for u, v in target_vars.items() if v.get() and u != "all"]
     
     # allが選ばれていたら単独扱い
@@ -111,11 +117,13 @@ def send_message():
     if len(targets) == 0:   # ユーザー未選択時は送信しない（仕様）
         return
 
+    # 送信データ構築
     packet = {
         "type": "message",
         "name": name,
         "text": text,
         "color": color_var.get(),
+        "font_size": font_sizes[font_size_var.get()],# 表示用（小・中・大）を数値（20/28/36）に変換して送信
         "to": targets
     }
 
@@ -125,6 +133,8 @@ def send_message():
 
 
 root = tk.Tk()
+# ディスプレイの高さを取得（フォント計算用）
+screen_height = root.winfo_screenheight()
 root.title("Danmaku Sender")
 root.geometry("500x400")
 
@@ -139,9 +149,8 @@ message_entry = tk.Entry(root)
 message_entry.pack(fill="x")
 message_entry.bind("<Return>", on_enter)    # Enterキー送信対応
 
-# =========================
+
 # ニコニコ風カラー選択
-# =========================
 
 color_var = tk.StringVar(value="#ffffff")   # 文字色（ニコニコ風カラー）
 
@@ -171,6 +180,29 @@ for name, code in colors.items():
         variable=color_var
     ).pack(side="left")
 
+# フォントサイズ選択（小・中・大）
+
+font_size_var = tk.StringVar(value="小")  # デフォルトは小（現在のサイズ）
+
+tk.Label(root, text="フォントサイズ").pack()
+
+font_frame = tk.Frame(root)
+font_frame.pack()
+
+font_sizes = {
+    "小": 40,  
+    "中": 80,
+    "大": 120,
+}
+
+for name, size in font_sizes.items():
+
+    tk.Radiobutton(
+        font_frame,
+        text=name,  # # 表示（小・中・大）
+        value=name, # 「小・中・大」を送るようにする(キー送る)
+        variable=font_size_var
+    ).pack(side="left")
 
 user_frame = tk.Frame(root)
 user_frame.pack(fill="both", expand=True)

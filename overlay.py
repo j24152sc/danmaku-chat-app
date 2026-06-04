@@ -19,8 +19,6 @@ class Danmaku(QLabel):
         super().__init__(text, parent)
 
         self.setStyleSheet("color:white; background:transparent;")
-        self.setFont(QFont("Meiryo", 20))
-        self.adjustSize()
 
         self.speed = random.randint(3, 8)   # 右→左スクロール速度
 
@@ -68,16 +66,31 @@ class Overlay(QWidget):
         threading.Thread(target=self.recv, daemon=True).start()
 
     def add(self, data):
-        # 受信データ形式: "name||text||color"
-        name, text, color = data.split("||")
+        # 受信データ形式: "name||text||color||font_size"
+        name, text, color, font_size = data.split("||")
 
+        # 名前あり → 名前＋メッセージ表示 / 名前なし → メッセージのみ
         if name and name.strip() != "":
-            display = f"{name} : {text}" # 名前あり → 名前＋メッセージ表示
+            display = f"{name} : {text}"
         else:
-            display = text      # 名前なし → メッセージのみ表示
+            display = text
 
         label = Danmaku(display, self)
-        label.setStyleSheet(f"color:{color}; background:transparent;")  # 文字色対応
+
+        font_size = int(font_size)
+
+        font = QFont("Meiryo")
+        font.setPixelSize(font_size)   
+
+        label.setFont(font)
+
+        label.adjustSize()
+
+     
+
+
+        # 文字色対応
+        label.setStyleSheet(f"color:{color}; background:transparent;")
 
         label.show()
         self.labels.append(label)
@@ -122,15 +135,19 @@ class Overlay(QWidget):
                     name = packet.get("name", "")
                     text = packet.get("text", "")
                     color = packet.get("color", "#ffffff")
+                    font_size = packet.get("font_size", 20)
+                    
+                    # デバッグ用受信確認（フォントサイズ）)
+                    print("font_size受信:", font_size)
 
-                    if name.strip() == "":
-                        name = None
+                    # 送信データをUIへ渡す（name/text/color/font_size）
+                    self.signal.emit(
+                        f"{name}||{text}||{color}||{font_size}"
+                    )
 
-                        self.signal.emit(f"{name or ''}||{text}||{color}")
-
-                    # ユーザー一覧受信（表示用途ではないデバッグ）
-                    elif packet["type"] == "users":
-                        print("オンライン:", packet["users"])
+                # ユーザー一覧受信（表示用途ではないデバッグ）
+                elif packet["type"] == "users":
+                    print("オンライン:", packet["users"])
 
 
 

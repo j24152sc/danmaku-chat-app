@@ -10,7 +10,7 @@ guest_count = 0 # 名前未設定ユーザーのゲスト番号管理
 
 
 def broadcast(data):
-
+    # 全員にJSONを送る関数
     msg = (json.dumps(data) + "\n").encode("utf-8")
 
     for c in list(clients.keys()):
@@ -22,7 +22,7 @@ def broadcast(data):
             except:
                 pass
 
-
+# オンラインユーザー一覧を送る
 def send_user_list():
 
     # overlayをユーザー一覧から除外
@@ -73,6 +73,7 @@ def handle_client(conn):
 
                 packet = json.loads(line)
 
+                # 登録処理
                 if packet["type"] == "register":
 
                     name = packet.get("name", "").strip()
@@ -93,7 +94,8 @@ def handle_client(conn):
                     }
                     
                     send_user_list()
-
+                    
+                # メッセージ処理
                 elif packet["type"] == "message":
                     # クライアントから送られた名前（空なら後でゲストになることもある）
                     name = packet.get("name", "").strip()
@@ -103,12 +105,16 @@ def handle_client(conn):
                     color = packet.get("color", "#ffffff")
                     # 送信対象リスト（例: ["all"] や ["A", "B"]）
                     targets = packet.get("to", ["all"]) 
+                    # font_size受け取る
+                    font_size = packet.get("font_size", 20)
 
+                    # 送信用データ
                     msg = {
                         "type": "message",
                         "name": name,
                         "text": text,
                         "color": color,
+                        "font_size": font_size,
                         "to": targets
                     }
                     
