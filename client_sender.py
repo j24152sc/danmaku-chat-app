@@ -96,6 +96,7 @@ def send_message():
 
     name = name_entry.get().strip()
     text = message_entry.get().strip()
+    
 
     if text == "":
         return
@@ -112,6 +113,7 @@ def send_message():
         "type": "message",
         "name": name,
         "text": text,
+        "color": color_var.get(),
         "to": targets
     }
 
@@ -134,6 +136,38 @@ tk.Label(root, text="メッセージ").pack()
 message_entry = tk.Entry(root)
 message_entry.pack(fill="x")
 message_entry.bind("<Return>", on_enter)
+
+# =========================
+# ニコニコ風カラー選択
+# =========================
+
+color_var = tk.StringVar(value="#ffffff")
+
+tk.Label(root, text="文字色（ニコニコ風）").pack()
+
+color_frame = tk.Frame(root)
+color_frame.pack()
+
+colors = {
+    "白": "#ffffff",
+    "赤": "#ff2d2d",
+    "ピンク": "#ff66cc",
+    "オレンジ": "#ff9900",
+    "黄": "#ffd400",
+    "緑": "#33cc66",
+    "水色": "#00ccff",
+    "青": "#3366ff",
+    "紫": "#9933ff"
+}
+
+for name, code in colors.items():
+
+    tk.Radiobutton(
+        color_frame,
+        text=name,
+        value=code,
+        variable=color_var
+    ).pack(side="left")
 
 
 user_frame = tk.Frame(root)

@@ -67,9 +67,12 @@ class Overlay(QWidget):
 
         threading.Thread(target=self.recv, daemon=True).start()
 
-    def add(self, text):
+    def add(self, data):
+        name, text, color = data.split("||")
 
-        label = Danmaku(text, self)
+        label = Danmaku(f"{name} : {text}", self)
+        label.setStyleSheet(f"color:{color}; background:transparent;")
+
         label.show()
         self.labels.append(label)
 
@@ -111,14 +114,13 @@ class Overlay(QWidget):
 
                     name = packet.get("name", "")
                     text = packet.get("text", "")
+                    color = packet.get("color", "#ffffff")
 
-                    if name:
-                        self.signal.emit(f"{name} : {text}")
-                    else:
-                        self.signal.emit(text)
+                    self.signal.emit(f"{name}||{text}||{color}")
 
                 elif packet["type"] == "users":
                     print("オンライン:", packet["users"])
+
 
 
 if __name__ == "__main__":
