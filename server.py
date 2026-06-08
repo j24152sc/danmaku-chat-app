@@ -96,7 +96,8 @@ def handle_client(conn):
                     send_user_list()
                     
                 # メッセージ処理
-                elif packet["type"] == "message":
+                elif packet["type"] == "message":                   
+                    
                     # クライアントから送られた名前（空なら後でゲストになることもある）
                     name = packet.get("name", "").strip()
                     # メッセージ本文
@@ -118,16 +119,14 @@ def handle_client(conn):
                         "to": targets
                     }
                     
-                    #送信元（自分）を保存:自分に送らないために使う
-                    sender_conn = conn
+                    # デバッグ用受信確認
+                    print("msg受信:", msg)
+                    print("targets:", targets)               
 
                     # all → 全員（自分除外）に送る
                     if "all" in targets:
 
-                        # 接続中の全ユーザーをループ
                         for c in list(clients.keys()):
-                            if c == sender_conn:
-                                continue
 
                             try:
                                 c.send((json.dumps(msg) + "\n").encode("utf-8"))
@@ -137,14 +136,18 @@ def handle_client(conn):
 
                     # 個別送信
                     else:
-                        # 接続ユーザー全員チェック
+                        # 接続中の全クライアントを確認
                         for c, info in list(clients.items()):
-                            if info["name"] in targets and c != sender_conn:
-                                try:
-                                    #対象ユーザーだけに送信
+                            try:
+                                # Overlayは全てのメッセージを表示するため常に送信
+                                if info["role"] == "overlay" :
                                     c.send((json.dumps(msg) + "\n").encode("utf-8"))
-                                except:
-                                    pass
+                                
+                                # 選択されたユーザーにも送信
+                                elif info["name"] in targets:
+                                    c.send((json.dumps(msg) + "\n").encode("utf-8"))
+                            except:
+                                pass
 
     except:
         pass

@@ -131,11 +131,14 @@ class Overlay(QWidget):
                 packet = json.loads(line)
 
                 if packet["type"] == "message":
+                    
+                    # デバッグ用受信確認（パケット全体） 
+                    print("Overlay受信:", packet)
 
                     name = packet.get("name", "")
                     text = packet.get("text", "")
                     color = packet.get("color", "#ffffff")
-                    font_size = packet.get("font_size", 20)
+                    font_size = int(packet.get("font_size", 20))
                     
                     # デバッグ用受信確認（フォントサイズ）)
                     print("font_size受信:", font_size)
@@ -156,3 +159,4 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = Overlay()
     sys.exit(app.exec())
+

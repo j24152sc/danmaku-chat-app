@@ -21,6 +21,9 @@ def connect_server():
     client.connect((HOST, PORT))
 
     name = name_entry.get().strip()
+    
+    # サーバーと同期用に保持
+    self_name = name
 
     # 空ならそのまま送る（サーバーでゲスト化）
     register = {
@@ -59,6 +62,11 @@ def receive_loop():
                     users = [u for u in users if u != "guest_sender"]
 
                     update_users(users)
+                    
+                # メッセージ受信
+                elif packet["type"] == "message":
+
+                    print("自分に届いた:", packet)
         except:
             pass
 
@@ -66,20 +74,48 @@ def receive_loop():
 # client_sender自身はユーザーとして表示されない設計
 def update_users(users):
 
+    # 現在のチェック状態を保存（ここ重要）
+    existing = {k: v.get() for k, v in target_vars.items()}
+
     for w in user_frame.winfo_children():
         w.destroy()
 
     tk.Label(user_frame, text="オンラインユーザー").pack(anchor="w")
-    
-    if "all" not in users and len(users) > 0:
-        users = ["all"] + users
 
-
+    # target_varsをリセット
     target_vars.clear()
 
     for u in users:
 
         var = tk.BooleanVar()
+        
+        def on_toggle(user=u, v=var):
+            # allを押したとき
+            if user == "all" and v.get():
+                for k, v2 in target_vars.items():
+                    if k != "all":
+                        v2.set(False)
+
+            # 他を押したとき
+            elif user != "all" and v.get():
+                if "all" in target_vars:
+                    target_vars["all"].set(False)
+                    
+        cb = tk.Checkbutton(
+            user_frame,
+            text=u,
+            variable=var,
+            command=on_toggle
+        )
+        cb.pack(anchor="w")
+
+        target_vars[u] = var
+
+    
+
+        # 前回の選択状態を復元
+        if u in existing:
+            var.set(existing[u])
 
         tk.Checkbutton(
             user_frame,
@@ -108,16 +144,22 @@ def send_message():
     print("辞書:", font_sizes)
     print("変換:", font_sizes[font_size_var.get()])
     
-    targets = [u for u, v in target_vars.items() if v.get() and u != "all"]
+    # チェックが入っているユーザーをすべて取得する
+    targets = [u for u, v in target_vars.items() if v.get()]
     
-    # allが選ばれていたら単独扱い
-    if "all" in [u for u, v in target_vars.items() if v.get()]:
+    # デバッグ用選択確認（送信）
+    print("送信targets:", targets)
+    print("name:", name)
+    
+    # 送信時だけ all 判定
+    if "all" in targets:
         targets = ["all"]
     
-    if len(targets) == 0:   # ユーザー未選択時は送信しない（仕様）
+    # 何も選ばれていない場合は送信しない
+    if len(targets) == 0:
         return
 
-    # 送信データ構築
+    # 送信データ
     packet = {
         "type": "message",
         "name": name,
@@ -133,8 +175,7 @@ def send_message():
 
 
 root = tk.Tk()
-# ディスプレイの高さを取得（フォント計算用）
-screen_height = root.winfo_screenheight()
+
 root.title("Danmaku Sender")
 root.geometry("500x400")
 
